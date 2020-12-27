@@ -1,0 +1,130 @@
+---
+title: "Assignment w8"
+author: "Anna Stuckert"
+date: "11/1/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Loading packages
+library(rvest)
+library(janitor)
+library(tidyverse)
+```
+
+1) adapt the webscraping example to scrape homicide data from FBI site and produce a meaningful report on how homicide trends evolve around US in relation to this urban unrest
+```{r}
+# scrape the website
+url_FBI <- read_html("https://en.wikipedia.org/wiki/List_of_U.S._states_by_homicide_rate") #Reading data from html format from website
+
+table_FBI <- html_table(url_FBI, fill = TRUE) #converting information into table format
+
+FBI_df <- table_FBI[[1]] #selecting specific table of interest from the list of tables.
+
+FBI_df #viewing table
+```
+
+
+
+2) use the rvest library to scrape data of your interest (football statistics in Wikipedia? global population by country in https://www.worldometers.info/world-population/population-by-country/ )
+
+```{r}
+url_population <- read_html("https://www.worldometers.info/world-population/population-by-country/")
+
+table_population <- html_table(url_population)
+
+population_df <- table_population[[1]]
+
+population_df <- clean_names(population_df)
+```
+
+
+#To practice scraping, I performed the exercise again, scraping data related to the corona virus
+```{r}
+url_corona <- read_html("https://www.bbc.com/news/world-51235105")  #Reading data from html format from website
+
+table_corona <- html_table(url_corona)  #converting information into table format
+
+#if you have a long list of tables you can loop over them to find the one of interest quickly
+for (i in table_corona){
+  print(head(i))
+}
+
+#turn the desired table into a dataframe
+corona_df <- table_corona[[1]]
+
+#clean the names using janitor
+corona_df <- clean_names(corona_df)
+
+
+```
+
+3) produce data visualisations that shed light on another interesting aspect of the police killing data
+
+```{r}
+
+#This is using the code from the homicide.Rmd provided by Adela earlier in the course
+
+homicide <- FBI_df %>% 
+  pivot_longer(-State, names_to = "year", values_to = "rate100k")
+homicide$year <- as.numeric(homicide$year)  # to stop ggplot from acting up over character column
+homicide
+
+library(ggrepel)
+
+#plotting the data for useful insights.
+ggplot(homicide,
+       aes(year,
+           rate100k*10,
+           colour = State)) +
+  geom_line() +
+	expand_limits(x=c(1994, 2022)) +
+  geom_text_repel(data = homicide[homicide$rate100k > 7.5 & homicide$year == 2018,],
+           aes(label = State,
+               x = 2018.1, 
+               y = rate100k*10, 
+               colour = State, 
+               hjust = -.01)) +
+  theme_minimal()  +
+  ylab("Number of people killed per 1,000,000") +
+  xlab("Year") +
+  theme(legend.position="none")
+
+#We can also extract information related to each year and take the means to elucidate informaiton on which year had the highest crime rate
+FBI_df <- FBI_df %>% select(-"State")
+colMeans(FBI_df)
+
+```
+
+Meaningful report of the data:
+Seemingly there is a peak in homicides at around 1996, then a donwward trend in homicides (except Louisiana), with a peak again at 2017 (precise year derived from colmun means using colMeans)
+
+
+I didn't really know what questions to ask with the homicie data since Adela's plot provided in the homicides.rmd explained a lot, but instead I plotted my scraped corona-data from BBC
+```{r}
+
+#checking structure of data
+str(corona_df)
+
+#converting case count into numerical
+corona_df$total_cases <- as.numeric(corona_df$total_cases)
+
+#Research question: Is there a relationship between number of cases and death rate?
+ggplot(corona_df, aes(total_cases, death_rate)) +
+	geom_point() + geom_smooth(method = "lm")
+
+# from the plot it would seem like there is a higher deathrate (not total death count, but rate) for higher count of infected - this is however likely due to a few values
+
+#However, when looking at the dataframe, it is evident the table is not correct, as some countries have a deathrate of 0, even though they have reported deaths (e.g. Vietnam and Tanzania)
+#Also it is possible some countries (possibly under dictatorship maybe???) do not report deaths (which is about 167 of them, bastards), which gives an incorrect impression
+#Overall it's a pretty bad and uninformative dataset
+
+arrange(corona_df, (death_rate))
+
+
+```
+
