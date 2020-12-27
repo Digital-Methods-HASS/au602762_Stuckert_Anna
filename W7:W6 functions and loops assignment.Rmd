@@ -1,0 +1,91 @@
+---
+title: "W7 assignment"
+author: "Anna Stuckert"
+date: "10/23/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Loading packages
+library(tidyverse)
+library(gapminder)
+
+df <- gapminder
+```
+
+
+	1. Define a defensive function that calculates the Gross Domestic Product of a nation from the data available in the gapminder dataset. Using that function, calculate the GDP of Denmark in the following years: 1967, 1977, 1987, 1997, 2007, and 2017.
+	
+```{r}
+
+calcGDP <- function(df) { #takes the dataframe of choice as input
+  if (!is.numeric(df$gdpPercap)) {
+    stop("gdpPercap must be a numeric vector.")
+  }
+  gdp <- df$pop * df$gdpPercap #multiplies the population number by the gross doemstic product per citizen
+  return(gdp) #returns a vector of the same length as your dataframe, containing the GDP for each observation.
+}
+
+#using the function to add a column to the gapmidner dataframe with GDP
+df$GDP <- calcGDP(df)
+
+# filtering the DF to only include Denmark from the years of interest
+df_DK <- filter(df, country == "Denmark", year == 1967|year == 1977|year == 1987|year == 1997| year == 2007| year == 2017)
+
+#2017 isn't added to the dataframe, as the variable seemingly doesn't exist in the original dataframe
+
+head(df_DK) #viewing the newly created dataframe including danish GDP values from the years of interest
+```
+
+	
+	2. Write a script that loops over each country in the gapminder dataset, tests whether the country starts with a ‘B’ , and print out whether the life expectancy is smaller than 50, between 50 and 70, or greater than 70.
+	
+```{r}
+#Convert country variables to characters
+df$country <- as.character(df$country)
+
+#as a single function
+
+for (i in df$lifeExp){
+  for (country in df$country) {
+    if(startsWith(country, 'B')) {
+      print("country starts with B")
+    } else { 
+        print("country doesn't start with B")
+      }
+  }
+  if (i < 50) {
+    print("Life expectancy is below 50")
+  } else if (between(i, 50,70)) {
+    print("Life expectancy is between 50 and 70")
+  } else {
+    print("Life expectancy is greater than 70")
+    }
+}
+  
+
+#as 2 seperate functions, one for whether country starts with B and one for life expectancy levels
+  for (country in df$country) {
+    if(startsWith(country, 'B')) {
+      print("country starts with B")
+    } else { 
+        print("country doesn't start with B")
+      }
+  }
+
+for (i in df$lifeExp){
+  if (i < 50) {
+    print("Life expectancy is below 50")
+  } else if (between(i, 50,70)) {
+    print("Life expectancy is between 50 and 70")
+  } else {
+    print("Life expectancy is greater than 70")
+    }
+}
+
+```
+	
