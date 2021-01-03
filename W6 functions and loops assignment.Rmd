@@ -1,10 +1,11 @@
 ---
-title: "W7 assignment"
+title: "W6 assignment"
 author: "Anna Stuckert"
 date: "10/23/2020"
 output:
-  html_document: default
+  word_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
