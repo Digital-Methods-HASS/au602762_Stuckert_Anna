@@ -50,29 +50,9 @@ head(df_DK) #viewing the newly created dataframe including danish GDP values fro
 #Convert country variables to characters
 df$country <- as.character(df$country)
 
-#as a single function
-
-for (i in df$lifeExp){
-  for (country in df$country) {
-    if(startsWith(country, 'B')) {
-      print("country starts with B")
-    } else { 
-        print("country doesn't start with B")
-      }
-  }
-  if (i < 50) {
-    print("Life expectancy is below 50")
-  } else if (between(i, 50,70)) {
-    print("Life expectancy is between 50 and 70")
-  } else {
-    print("Life expectancy is greater than 70")
-    }
-}
-  
-
 #as 2 seperate functions, one for whether country starts with B and one for life expectancy levels
   for (country in df$country) {
-    if(startsWith(country, 'B')) {
+    if(startsWith(country, 'B')){
       print("country starts with B")
     } else { 
         print("country doesn't start with B")
@@ -90,4 +70,63 @@ for (i in df$lifeExp){
 }
 
 ```
+
+Combining the 2 seperate functions from previous chunk into a single function. This chunk is not evaluated, as it takes a long time to run the nested loop an the document does not knit. The code is however there for reference.
+```{r, eval = FALSE}
+#as a single function
+
+for (i in df$lifeExp){
+  for (country in df$country) {
+    if(startsWith(country, 'B')){
+      print("country starts with B")
+    } else { 
+        print("country doesn't start with B")
+      }
+  }
+  if (i < 50) {
+    print("Life expectancy is below 50")
+  } else if (between(i, 50,70)) {
+    print("Life expectancy is between 50 and 70")
+  } else {
+    print("Life expectancy is greater than 70")
+    }
+}
+
+```
 	
+However, for comprehensability, I re-wrote the function so it can print the information for each observation in the dataset, rather than looping over the dataset twice (which takes a lot of time), and give us full information on the observation immediately
+
+```{r}
+#Creating lists for country and year information, for each entry [i]
+list1 <- as.list(df[,1]) #taking country column from dataframe and turning into a list
+list1 <- list1[["country"]] #turning the list of countries into a vector
+list2 <- as.list(df[,3]) #taking year column from dataframe and turning into a list
+list2 <- list2[["year"]] #turning the list of years into a vector
+# Looping through all countries, each year, and print whether the first letter is B, and the intervals of life expectancy for the given year
+for (i in 1:length(list1)){
+  
+  x <- list1[i]
+  y <- list2[i]
+  first <- substr(x, start = 1, stop = 1)
+  
+  if (isTRUE(first == "B") == TRUE){
+    sentence_A <- paste("The first letter of", x, "is B.")
+  } else {
+    sentence_A <- paste("The first letter of", x, "is not B.")
+  }
+  if (df$lifeExp[i] <= 50){
+    sentence_B <- paste("In", x, "the life expectancy was under 50 years in", y,"")
+    
+  } else if (df$lifeExp[i] >= 70){
+    sentence_B <- paste("In", x, "the life expectancy was greater than 70 years in", y,"")
+    
+  } else {
+    sentence_B <- paste("In", x, "the life expectancy was between 50 and 70 years in", y,"")
+    
+  }
+  print(paste(sentence_A,sentence_B))
+  
+}
+
+```
+
